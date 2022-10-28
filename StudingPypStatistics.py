@@ -238,14 +238,21 @@ plt.show() '''
 # OC curve
 from scipy.stats import binom 
 from scipy.stats import hypergeom
-p = [0.001,0.002,.003,0.004,0.005,0.006,0.007,0.008,0.009,0.01]
+p = [0.0005,0.005,0.008,0.01,0.02,.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1]
 n = 50
 Pa = []
 PgInf = []
 d= 1
-N=500
+N=280
+beta = 0.1
+DeltaBeta = 0.005
+LTPD = 0.05
+Start_n_ForSearch = N / 10
+End_n_ForSearch = N / 2
+SulotionBeta = []
+# If we have N<300 it's better to use hypergeom distribution
 
-''' # M - общая выборка, dg число бракованных единиц, 10 - случайная выборка
+''' # M - общая выборка, dg число бракованных единиц, n - случайная выборка
 rv = hypergeom(M, dg, N)
 x = np.arange(0, n+1)
 pmf_dogs =rv.pmf(x) '''
@@ -266,8 +273,8 @@ for i in p:
 
 fig, ax = plt.subplots()
 ax.plot(p, Pa, linewidth=0, marker='s', label='Data points')
-LabelString = 'n='+str(n) + ', c ='+ str(d)
-LabelStringInf = 'M='+str(N) + ', c ='+ str(d)
+LabelString = 'Binomial: '+'n='+str(n) + ', c ='+ str(d)
+LabelStringInf = 'Hypergeometric: '+'M='+str(N) + ', c ='+ str(d)
 ax.plot(p, Pa, label=LabelString, color = 'green')
 ax.plot(p, PgInf, label=LabelStringInf, color = 'red')
 ax.set_xlabel('p')
@@ -275,4 +282,37 @@ ax.set_ylabel('Pa')
 ax.legend(facecolor='white')
 plt.show()
 
+
+if (N/2) < Start_n_ForSearch:
+    print("Общий объем партии N/2 {}, должен быть больше стартового значение выборки Start_n_ForSearch {}, поиск выборочного значения для бета риска покупателя {} не производился".format(End_n_ForSearch,Start_n_ForSearch,beta))
+else:
+    for iter_n in range(int(Start_n_ForSearch),int(End_n_ForSearch)):
+        if N < 300:
+            
+            hypergP = 0
+            
+            for iter in range(d+1):
+                defective = N*LTPD
+                rv = hypergeom(N, defective, iter_n)
+                hypergP=hypergP+rv.pmf(iter)
+            if  (hypergP - beta) < DeltaBeta:
+                CurrentSolution = (iter_n,hypergP)
+                SulotionBeta.append(CurrentSolution)
+        else:
+            
+            binomP = 0
+           
+            for iter in range(d+1):
+                binomP = binomP + binom.pmf(iter,iter_n, LTPD)
+            if  (binomP - beta) < DeltaBeta:
+                CurrentSolution = (iter_n,binomP)
+                SulotionBeta.append(CurrentSolution)
+            
+                
+if SulotionBeta.count > 0:                 
+    print("Найдено решение для занных условий: ",SulotionBeta[0])
+else:
+    print("Не найдено решения для заданных условий")        
+            
+                
 
