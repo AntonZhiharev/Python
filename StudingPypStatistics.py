@@ -242,7 +242,7 @@ p = [0.0005,0.005,0.008,0.01,0.02,.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1]
 n = 50
 Pa = []
 PgInf = []
-d= 2
+d= 3
 N=1000
 Alfa = 0.9
 DeltaAlfa = 0.005
@@ -298,59 +298,62 @@ else:
                 defective = N*LTPD
                 rv = hypergeom(N, defective, iter_n)
                 hypergP=hypergP+rv.pmf(iter)
-            if  (hypergP - beta) < DeltaBeta:
-                CurrentSolution = (iter_n,hypergP,iter)
-                SolutionBeta.append(CurrentSolution)
+                if  (hypergP - beta) < DeltaBeta:
+                    CurrentSolution = (iter_n,hypergP,iter)
+                    SolutionBeta.append(CurrentSolution)
         else:
+         #if iter_n == 200:
+        #      print()       
             
             binomP = 0
            
             for iter in range(d+1):
                 binomP = binomP + binom.pmf(iter,iter_n, LTPD)
-            if  (binomP - beta) < DeltaBeta:
-                CurrentSolution = (iter_n,binomP,iter)
-                SolutionBeta.append(CurrentSolution)
-                break
+                if abs(binomP - beta) < DeltaBeta:
+                    CurrentSolution = (iter_n,binomP,iter)
+                    SolutionBeta.append(CurrentSolution)
+                #break
         #if len(SolutionBeta) > 0:
         #   break
                 
 if len(SolutionBeta) > 0:                 
     
-    print("Найдено решение бетта вероятности для заданных условий: ",SolutionBeta.sort())
+    print("Найдено решение бетта вероятности для заданных условий: ",SolutionBeta)
     IterP = 0.001
     
     
     for SolAlfa in SolutionBeta:
         sample = SolAlfa[0]
-        
+        IterP = 0
         if N < 300:
-                
-            hypergP = 0
             
-            for iter in range(d+1):
-                defective = N*IterP
-                rv = hypergeom(N, defective, sample[0])
-                hypergP=hypergP+rv.pmf(iter)
-            if  abs(hypergP - Alfa) < DeltaAlfa:
-                CurrentSolution = (sample[0],hypergP,IterP,iter)
-                SolutionAlfa.append(CurrentSolution)
+            while  IterP < 1:   
+                
+                hypergP = 0
+            
+                for iter in range(d+1):
+                    defective = N*IterP
+                    rv = hypergeom(N, defective, sample[0])
+                    hypergP=hypergP+rv.pmf(iter)
+                    if  abs(hypergP - Alfa) < DeltaAlfa:
+                        CurrentSolution = (sample[0],hypergP,IterP,iter)
+                        SolutionAlfa.append(CurrentSolution)
+                IterP += 0.0001
         else:
             
+            while  IterP < 1: 
                 binomP = 0
             
                 for iter in range(d+1):
                     binomP = binomP + binom.pmf(iter,sample, IterP)
-                if  abs(binomP - Alfa) < DeltaAlfa:
-                    CurrentSolution = (IterP,sample,binomP,iter)
-                    SolutionAlfa.append(CurrentSolution)
-                    break  
-        if IterP < 1:
-                IterP += 0.0001
-        else:
-                break
+                    if  abs(binomP - Alfa) < DeltaAlfa:
+                        CurrentSolution = (IterP,sample,binomP,iter)
+                        SolutionAlfa.append(CurrentSolution)
+                IterP += 0.0001          
+        
             
     if len(SolutionAlfa) > 0:                 
-        print("Найдено решение альфа вероятности для заданных условий: ",SolutionAlfa.sort())
+        print("Найдено решение альфа вероятности для заданных условий: ",SolutionAlfa)
     else:
         print("Не найдено решение альфа вероятности  для заданных условий") 
         
@@ -358,6 +361,5 @@ if len(SolutionBeta) > 0:
 else:
     print("Не найдено решение бетта вероятности  для заданных условий")        
             
-                
 
 
